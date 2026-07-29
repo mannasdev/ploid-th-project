@@ -6,3 +6,4 @@ Take Home.txt
 *.db-journal
 *.db-wal
 *.db-shm
+.env
