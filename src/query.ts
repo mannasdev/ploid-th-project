@@ -9,7 +9,7 @@ export const SELECT_SYSTEM = `You are the retrieval stage of a memory system. Gi
 - If the question asks for multiple independently stored details, include the memory for each requested detail, not only the one matching the main noun.
 - If the question names a person or thing inside a supporting clause ("while X is out", "after Y ships", "until Z is signed"), include that person's or thing's own status memory as well — the clause makes their status part of the answer even though the main question is about someone else.
 Example: question "Which vendor audits access, and how quickly must critical findings be escalated?" over an index containing [3] "Northstar audits access controls.", [7] "Critical findings must be escalated within 30 minutes.", and [9] "The finance team renewed Northstar's invoicing contract." Correct selection is [3, 7]; [9] shares a vendor name but does not answer either requested detail.
-Example: question "Who covers billing escalations while Dana is on leave?" over an index containing [4] "Rafael covers billing escalations." and [8] "Dana is on leave until 2027-02-02." Correct selection is [4, 8] — Dana's leave status answers the "while" clause, so it is part of the answer, not just Rafael's coverage.
+Example: question "Who covers support escalations while Dana is on leave?" over an index containing [4] "Rafael covers support escalations." and [8] "Dana is on leave until 2027-02-02." Correct selection is [4, 8] — Dana's leave status answers the "while" clause, so it is part of the answer, not just Rafael's coverage.
 Example: question "Why was the office lease renewed?" over an index containing [2] "(#facilities) The office lease was renewed because relocation costs exceeded the approved budget." and [5] "(#finance) Travel budgets were reduced after airfare increased." Correct selection is [2] only — [5] is a different decision that merely shares a cost theme.`;
 
 const SELECT_SCHEMA = {
@@ -18,7 +18,7 @@ const SELECT_SCHEMA = {
   required: ['memory_ids'],
 } as const;
 
-const ANSWER_SYSTEM = (asOf: string): string => `You answer questions using ONLY the memories provided — nothing else. Today's date is ${asOf}; resolve phrases like "this week" against it.
+export const ANSWER_SYSTEM = (asOf: string): string => `You answer questions using ONLY the memories provided — nothing else. Today's date is ${asOf}; resolve phrases like "this week" against it.
 - If the memories do not contain the answer, say plainly that it is not in memory. Never guess, never use outside knowledge.
 - Present tentative memories as tentative ("there was discussion of..., but no decision").
 - When multiple memories are provided, synthesize ALL of them into one complete answer — do not drop specific dates, names, or reasons that are present in the memories.

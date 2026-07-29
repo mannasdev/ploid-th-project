@@ -1,5 +1,6 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { loadConfig } from './config.js';
 import { Llm } from './llm.js';
@@ -16,7 +17,7 @@ interface Scenario {
   expected: string;
 }
 
-const JUDGE_SYSTEM = `You grade a memory system's answer against a gold answer. Verdict "correct" if the answer conveys the gold answer's substance — wording may differ and extra accurate context is fine. Verdict "incorrect" if it contradicts the gold answer, misses its key fact, or gives a confident answer where the gold says the correct behavior is to abstain.
+export const JUDGE_SYSTEM = `You grade a memory system's answer against a gold answer. Verdict "correct" if the answer conveys the gold answer's substance — wording may differ and extra accurate context is fine. Verdict "incorrect" if it contradicts the gold answer, misses its key fact, or gives a confident answer where the gold says the correct behavior is to abstain.
 Grade by checklist, not by diff: list each fact the gold answer requires, then check whether the system answer states each one correctly. If every required fact is present and correct, the verdict is "correct" — regardless of how much additional material the answer includes. Additional facts (other dates, names, reasons) are only a problem when one of them asserts a DIFFERENT value for the SAME question a gold fact answers; information answering a different question is never a contradiction, even when it is the same kind of value (another date, another number) in the same sentence.
 Example: gold "Nadia returns 2027-03-04." System answer "Omar handles the release, which ships 2027-04-15; Nadia returns 2027-03-04." → correct: the ship date answers a different question than Nadia's return; the required fact is present and right.
 One-sentence reason.`;
@@ -230,7 +231,9 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err: unknown) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err: unknown) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}

@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EXTRACTION_SYSTEM } from '../src/extract.js';
-import { SELECT_SYSTEM } from '../src/query.js';
+import { ANSWER_SYSTEM, SELECT_SYSTEM } from '../src/query.js';
 import { RECONCILE_SYSTEM } from '../src/reconcile.js';
+import { JUDGE_SYSTEM } from '../src/eval.js';
 
 interface Scenario {
   question: string;
@@ -14,20 +15,42 @@ const scenarios = [
   ...(JSON.parse(readFileSync(new URL('../eval/scenarios.json', import.meta.url), 'utf8')) as Scenario[]),
   ...(JSON.parse(readFileSync(new URL('../eval/holdout/scenarios.json', import.meta.url), 'utf8')) as Scenario[]),
 ];
-// eval.ts runs the live, credentialed harness at module load, so inspect its
-// source rather than importing it into the offline test process. query.ts is
-// read as source too so the unexported ANSWER_SYSTEM template is covered.
-const evalSource = readFileSync(new URL('../src/eval.ts', import.meta.url), 'utf8');
-const querySource = readFileSync(new URL('../src/query.ts', import.meta.url), 'utf8');
 
 const normalize = (value: string): string => value.toLowerCase().replace(/\s+/g, ' ').trim();
-const prompts = normalize([
-  EXTRACTION_SYSTEM,
-  SELECT_SYSTEM,
-  RECONCILE_SYSTEM,
-  evalSource,
-  querySource,
-].join('\n'));
+const prompts = normalize(
+  [
+    EXTRACTION_SYSTEM,
+    SELECT_SYSTEM,
+    ANSWER_SYSTEM('2020-01-01T00:00:00Z'),
+    RECONCILE_SYSTEM,
+    JUDGE_SYSTEM,
+  ].join('\n'),
+);
+
+test('prompts do not mention fixture participants or channels', () => {
+  const fixtureFiles = [
+    '../fixtures/launch-a.json',
+    '../fixtures/launch-b.json',
+    '../fixtures/platform-eng.json',
+    '../eval/holdout/transcript.json',
+  ];
+  const authors = new Set<string>();
+  const channels = new Set<string>();
+  for (const f of fixtureFiles) {
+    const msgs = JSON.parse(readFileSync(new URL(f, import.meta.url), 'utf8')) as Array<{
+      author: string;
+      channel: string;
+    }>;
+    for (const m of msgs) {
+      authors.add(m.author.toLowerCase());
+      channels.add(m.channel.toLowerCase());
+    }
+  }
+  for (const name of [...authors, ...channels]) {
+    const re = new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    assert.equal(re.test(prompts), false, `fixture name "${name}" appears in a prompt`);
+  }
+});
 
 test('prompts do not contain eval questions or substantive gold answers', () => {
   for (const scenario of scenarios) {
