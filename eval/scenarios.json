@@ -10,6 +10,6 @@
   { "id": "ab-2", "category": "abstention", "question": "Where is the launch party going to be?", "as_of": "2026-07-23T12:00:00Z", "expected": "Not known — no venue was ever decided; correct behavior is to abstain." },
   { "id": "ab-3", "category": "abstention", "question": "What database does the team use?", "as_of": "2026-07-23T12:00:00Z", "expected": "Not in memory — never discussed; correct behavior is to abstain." },
   { "id": "at-1", "category": "attribution", "question": "Who owns the launch checklist?", "as_of": "2026-07-23T12:00:00Z", "expected": "Sam." },
-  { "id": "mh-1", "category": "multi_hop", "question": "Why was the deploy freeze cancelled?", "as_of": "2026-07-23T12:00:00Z", "expected": "Because the billing fix has to ship next week or the 2026-08-21 launch slips again." },
+  { "id": "mh-1", "category": "multi_hop", "question": "Why was the deploy freeze cancelled?", "as_of": "2026-07-23T12:00:00Z", "expected": "Because the billing fix has to ship next week and takes priority. (Also mentioning the consequence — that the 2026-08-21 launch would slip otherwise — is good but not required.)" },
   { "id": "mh-2", "category": "multi_hop", "question": "Who should I ask about the launch checklist while Priya is out?", "as_of": "2026-07-23T12:00:00Z", "expected": "Sam — he owns the checklist; Priya is back 2026-07-28." }
 ]

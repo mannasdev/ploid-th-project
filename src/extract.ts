@@ -20,9 +20,10 @@ NEVER record:
 - greetings, reactions, emoji, chatter, social plans that never resolve into a decision
 
 Rules:
-- subject = who or what the fact is ABOUT, never who said it. "Priya is out next week" said by Dan → subject "priya". Team-level facts (launch dates, freezes, rules) → scope "channel" with subject set to the channel name.
-- Resolve every relative date ("next week", "the 28th", "Monday") to an absolute ISO date using the TIMESTAMP OF THE MESSAGE, and write the absolute date into the statement. Each message is rendered as "[id] ISO-timestamp (Weekday; "next week" Monday = YYYY-MM-DD) author: text" — that Monday date is precomputed for you. Use it ONLY when a bare "next week" / "starting Monday" phrase is the sole way of pinning that point in time (e.g. "deploy freeze starting Monday", "on call next week"). If the message itself already gives an explicit date for a point ("back the 28th", "the 14th"), that stated date always wins for that point — never let the precomputed Monday override or redefine a date the message states explicitly.
-- When a fact changes a previously known value (a date moves, a decision reverses), the new statement MUST explicitly state the new CURRENT value (e.g. the actual new date) — never write a fact that only explains why the old value no longer holds without giving the replacement value. Never write the literal old value (its exact number or ISO-style date) in ANY new fact's statement, including a separate fact that merely explains or gives background for the change — refer to it descriptively instead ("the original date", "the previous plan") if you need to reference it at all; supersession already preserves the history.
+- subject = who or what the fact is ABOUT, never who said it. "Asha prefers written updates" said by Luis → subject "asha". Team-level facts (release policies, maintenance windows, rules) → scope "channel" with subject set to the channel name.
+- Normalize EVERY calendar date written in a stored statement — relative or explicit — to YYYY-MM-DD. Resolve relative dates ("next week", "the 17th", "Monday") using the TIMESTAMP OF THE MESSAGE. Each message is rendered as "[id] ISO-timestamp (Weekday; "next week" Monday = YYYY-MM-DD) author: text" — that Monday date is precomputed for you. Use it ONLY when a bare "next week" / "starting Monday" phrase is the sole way of pinning that point in time (e.g. "inventory count starting Monday", "training next week"). If the message itself gives an explicit date for a point ("back the 17th", "the 3rd"), that stated date wins; convert it to YYYY-MM-DD rather than copying month-name wording.
+- When a fact changes a previously known value (a date moves, a decision reverses), emit a replacement fact that states only the new CURRENT value. Never write the literal old value in ANY new fact's statement, and never use "changed/moved from OLD to NEW" wording; supersession already preserves the old row. Generic example: WRONG "Log retention changed from 90 days to 30 days." RIGHT "Application logs are retained for 30 days." A reason may be included, but without restating the old value.
+- Choose the kind from the fact itself: use "deadline" when the primary fact is a scheduled date or deadline (including a moved date), "availability" for a person's availability, "ownership" for responsibility, and the closest remaining kind otherwise.
 - certainty "decided" only for explicit commitments, locks, and announcements; "tentative" for hedged-but-real signal ("we may push the email").
 - Write each statement as one self-contained sentence that makes sense without the conversation.
 - Sweep the ENTIRE window — unrelated facts can appear anywhere, including in passing.
@@ -30,21 +31,31 @@ Rules:
 - source_msg_ids: the ids of the target messages that establish the fact.
 
 Example window:
-  [x1] 2026-03-02T10:00:00Z ana: ok shipping v2 on March 9, it's locked
-  [x2] 2026-03-02T10:01:00Z leo: lol or we ship never and open a bakery
-  [x3] 2026-03-02T10:02:00Z ana: leo pls. also I'm off this friday
-Correct output — exactly two facts:
-  { subject: "#chan", scope: "channel", kind: "deadline", statement: "v2 ships on 2026-03-09.", certainty: "decided", source_msg_ids: ["x1"] }
-  { subject: "ana", scope: "person", kind: "availability", statement: "Ana is off on 2026-03-06.", certainty: "decided", source_msg_ids: ["x3"] }
-The bakery message produces nothing.
+  [x1] 2026-03-02T10:00:00Z ana: what if every status meeting had a theme song
+  [x2] 2026-03-02T10:01:00Z leo: only if you perform it live
+  [x3] 2026-03-02T10:02:00Z ana: absolutely not 😂
+Correct output: { facts: [] }. The suggestion is banter that produces no durable fact.
 
-Example window — a value changes with a stated reason (an existing active memory already says "v2 ships on 2026-03-09."):
-  [y1] 2026-04-01T09:00:00Z bo: eng found a blocker, march 9 isn't happening
-  [y2] 2026-04-01T09:01:00Z bo: new ship date is march 16
-Correct output — exactly two facts, and note NEITHER repeats "2026-03-09":
-  { subject: "#chan", scope: "channel", kind: "fact", statement: "A blocker was found that prevented shipping on the originally planned date.", certainty: "decided", source_msg_ids: ["y1"] }
-  { subject: "#chan", scope: "channel", kind: "deadline", statement: "v2 ships on 2026-03-16.", certainty: "decided", source_msg_ids: ["y2"] }
-The store's supersession link already preserves the old date's history — restating "2026-03-09" in either new fact would be wrong.`;
+Example window:
+  [y1] 2026-04-06T09:00:00Z nora: customer exports should default to CSV from now on
+  [y2] 2026-04-06T09:01:00Z omar: agreed, let's make that the standard
+  [y3] 2026-04-06T09:02:00Z nora: I'll own the export documentation
+Correct output — exactly two facts:
+  { subject: "#chan", scope: "channel", kind: "decision", statement: "Customer exports default to CSV.", certainty: "decided", confidence: 0.98, source_msg_ids: ["y1", "y2"] }
+  { subject: "nora", scope: "person", kind: "ownership", statement: "Nora owns the customer-export documentation.", certainty: "decided", confidence: 0.98, source_msg_ids: ["y3"] }
+
+Example window — availability with a vague range plus an explicit date:
+  [w1] 2027-09-06T11:00:00Z tara: reminder — I'm off most of next week, back the 15th
+Correct output — one fact:
+  { subject: "tara", scope: "person", kind: "availability", statement: "Tara is out of office and returns on 2027-09-15.", certainty: "decided", confidence: 0.97, source_msg_ids: ["w1"] }
+The explicitly stated return date ("the 15th" → 2027-09-15 from the message timestamp) is the anchor and MUST appear in the statement as an ISO date. The vague range ("most of next week") is NOT converted into invented boundary dates — never write a "through DATE" you computed yourself alongside a stated return date, and never write a through-date equal to the return date (being out through a date and returning on it contradict each other).
+
+Example window — a stored value changes (an active memory already records a different log-retention period):
+  [z1] 2026-05-11T14:00:00Z ivan: storage review is complete; reduce application-log retention
+  [z2] 2026-05-11T14:01:00Z mira: approved, set retention to 30 days starting today
+Correct output — one fact carrying the new current value:
+  { subject: "#chan", scope: "channel", kind: "decision", statement: "Application logs are retained for 30 days beginning 2026-05-11 after the storage review.", certainty: "decided", confidence: 0.99, source_msg_ids: ["z1", "z2"] }
+The old retention value is not repeated — this applies even inside the reason clause: "after the storage review" is correct, while "after the storage review required the original 90-day retention to be shortened" is WRONG because it writes the old value into the new fact. Refer to what changed descriptively ("the original period", "the previous date"); the superseded row already records the old value.`;
 
 const RECORD_FACTS_SCHEMA = {
   type: 'object',

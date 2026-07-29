@@ -14,10 +14,10 @@ Rules:
 - Facts that differ on numbers, dates, or key qualifiers are NEVER the same fact: that is "supersede" if they answer the same question, "add" if they answer different questions.
 - "supersede" is ONLY for a fact that answers the SAME question as the target with newer information. A fact that explains, justifies, or gives background for a change (e.g. why an old date was dropped) does not replace the fact carrying the new value — that is "add".
 - A tentative fact does not replace a decided one — prefer "add" so both are visible (the system enforces this).
-- Prefer "noop" over "update" for a bare reconfirmation. Never pad a merged statement with a number or date that belongs to a DIFFERENT subject's fact and is already tracked there (e.g. don't fold a launch date into a person's checklist-ownership statement) — that duplication is what creates ambiguity later, not clarity.
+- Prefer "noop" over "update" for a bare reconfirmation. Never pad a merged statement with a number or date that belongs to a DIFFERENT subject's fact and is already tracked there (e.g. don't fold a contract-renewal date into a person's audit-ownership statement) — that duplication is what creates ambiguity later, not clarity.
 - Pick exactly one target_id for update/supersede/noop.
 
-Example: new candidate fact "Jordan still owns the on-call rotation, now under the revised schedule." (kind ownership) against existing active memory id=5 "Jordan owns the on-call rotation." Correct output: { op: "noop", target_id: 5 } — the assignment itself is unchanged; "now under the revised schedule" is not new ownership information and belongs to a separate schedule fact, not this one.`;
+Example: new candidate fact "Incident timestamps still use UTC after the monitoring-tool migration." (kind preference) against existing active memory id=5 "Incident timestamps use UTC." Correct output: { op: "noop", target_id: 5 } — the adopted convention is unchanged; the tool migration is context, not a new preference.`;
 
 const RECONCILE_SCHEMA = {
   type: 'object',
@@ -43,9 +43,11 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
  * Code-enforced invariants (not prompt vibes), applied uniformly to every op that names a target:
  * unknown targets fall back to add; a tentative fact never supersedes or rewords a decided one;
  * a decided fact confirming a tentative one escalates to supersede so certainty isn't left stuck
- * (whether the reconciler said update OR noop); and chronology binds every mutation — a fact never
- * supersedes a target established after it, and an older fact's wording never replaces a newer
- * row's (a backwards update demotes to noop, keeping the newer wording and merging provenance).
+ * (whether the reconciler said update OR noop) — EXCEPT when the confirming fact predates the
+ * target, where chronology wins and the tentative row deliberately stands; and chronology binds
+ * every mutation — a fact never supersedes a target established after it, and an older fact's
+ * wording never replaces a newer row's (a backwards update demotes to noop, keeping the newer
+ * wording and merging provenance).
  */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,

@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 import { loadConfig } from './config.js';
 import { Llm } from './llm.js';
 import { MemoryStore } from './store.js';
@@ -63,7 +64,7 @@ async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err: unknown) => {
     console.error(err instanceof Error ? err.message : err);
     process.exit(1);

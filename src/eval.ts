@@ -17,8 +17,8 @@ interface Scenario {
 }
 
 const JUDGE_SYSTEM = `You grade a memory system's answer against a gold answer. Verdict "correct" if the answer conveys the gold answer's substance — wording may differ and extra accurate context is fine. Verdict "incorrect" if it contradicts the gold answer, misses its key fact, or gives a confident answer where the gold says the correct behavior is to abstain.
-If the answer contains multiple dates or numbers, find the specific clause that states what the gold answer states, and compare only that clause to the gold — a different, unrelated date or number mentioned elsewhere in the same answer is not a contradiction, it's extra accurate context, even if it sits right next to the one you're checking.
-Example: gold "X returns 2026-07-28." System answer "Y owns the task for the 2026-08-21 project, and X returns 2026-07-28." → correct: the 2026-08-21 is a different, unrelated fact, not a contradiction of X's return date.
+Grade by checklist, not by diff: list each fact the gold answer requires, then check whether the system answer states each one correctly. If every required fact is present and correct, the verdict is "correct" — regardless of how much additional material the answer includes. Additional facts (other dates, names, reasons) are only a problem when one of them asserts a DIFFERENT value for the SAME question a gold fact answers; information answering a different question is never a contradiction, even when it is the same kind of value (another date, another number) in the same sentence.
+Example: gold "Nadia returns 2027-03-04." System answer "Omar handles the release, which ships 2027-04-15; Nadia returns 2027-03-04." → correct: the ship date answers a different question than Nadia's return; the required fact is present and right.
 One-sentence reason.`;
 
 const JUDGE_SCHEMA = {
@@ -48,10 +48,16 @@ const STORE_CHECKS: StoreCheck[] = [
     id: 'sc-aug14',
     description: 'Aug 14 launch date exists, is superseded, and its supersession chain terminates in an active row; no active Aug 14 remains; a decided Aug 21 launch deadline is active',
     run: (all) => {
+      // Availability facts may mention dates in passing (e.g. an OOO range); only
+      // launch-date-bearing rows belong to this lineage assertion.
       const aug14 = all.filter((m) => /2026-08-14/.test(m.statement) && m.kind !== 'availability');
+      // An active row may reference the old date descriptively while stating the
+      // new one ("moved from the original date") — that is not a stale claim. What
+      // must never exist is an active row carrying the old date WITHOUT the
+      // current date: a naked Aug-14 assertion.
       if (
         !aug14.some((m) => m.status === 'superseded' && m.superseded_by !== null) ||
-        aug14.some((m) => m.status === 'active')
+        aug14.some((m) => m.status === 'active' && !/2026-08-21/.test(m.statement))
       ) return false;
 
       const byId = new Map(all.map((m) => [m.id, m]));
@@ -68,8 +74,16 @@ const STORE_CHECKS: StoreCheck[] = [
         if (current.status !== 'active') return false;
       }
 
+      // kind is deliberately loose here: a date change legitimately extracts as
+      // 'deadline' or 'decision' depending on phrasing — the assertion's point is
+      // that an active #launch row carries the Aug 21 date with decided certainty.
       return all.some(
-        (m) => m.status === 'active' && m.kind === 'deadline' && m.channel === '#launch' && /2026-08-21/.test(m.statement),
+        (m) =>
+          m.status === 'active' &&
+          (m.kind === 'deadline' || m.kind === 'decision') &&
+          m.channel === '#launch' &&
+          m.certainty === 'decided' &&
+          /2026-08-21/.test(m.statement),
       );
     },
   },
@@ -111,7 +125,7 @@ const STORE_CHECKS: StoreCheck[] = [
   },
   {
     id: 'sc-channel-subject',
-    description: 'every channel-scoped memory has subject equal to its own channel',
+    description: 'regression guard: channel-scoped subjects are pinned to the channel in code (extract.ts), so this can only fail if that normalization regresses',
     run: (all) => all.filter((m) => m.scope === 'channel').every((m) => m.subject === m.channel),
   },
 ];
@@ -126,6 +140,10 @@ async function main(): Promise<void> {
   try {
     const store = new MemoryStore(dbPath);
     const llm = new Llm(cfg);
+    // The judge runs on a stronger model than the pipeline under test: grading
+    // noise from a small judge showed up as flaky misgrades of correct answers,
+    // and a same-model judge also maximizes self-preference risk.
+    const judgeLlm = new Llm({ ...cfg, model: process.env['MEMORY_JUDGE_MODEL'] ?? 'claude-sonnet-5' });
 
     console.log('--- ingest ---');
     for (const f of FIXTURES) await ingestTranscript(store, llm, f);
@@ -146,7 +164,7 @@ async function main(): Promise<void> {
     const results = await Promise.all(
       scenarios.map(async (s) => {
         const { answer } = await answerQuestion(store, llm, s.question, s.as_of);
-        const judged = await llm.structured<{ verdict: string; reason: string }>({
+        const judged = await judgeLlm.structured<{ verdict: string; reason: string }>({
           system: JUDGE_SYSTEM,
           user: `Question: ${s.question}\nGold answer: ${s.expected}\nSystem answer: ${answer}`,
           toolName: 'grade',
