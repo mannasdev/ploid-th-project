@@ -124,7 +124,7 @@ export async function extractFacts(
     user,
     toolName: 'record_facts',
     toolDescription: 'Record the durable facts found in the target messages. An empty list is a normal outcome.',
-    schema: RECORD_FACTS_SCHEMA as unknown as Record<string, unknown>,
+    schema: RECORD_FACTS_SCHEMA,
   });
 
   const targetIds = new Set(win.target.map((m) => m.id));

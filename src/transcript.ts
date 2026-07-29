@@ -2,10 +2,14 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { StoredMessage, TranscriptMessage } from './types.js';
 
+/** UTC "Z"-suffixed ISO-8601 — the only timestamp form accepted, so lexicographic ts ordering is provably chronological. */
+function isUtcIsoTs(ts: unknown): ts is string {
+  return typeof ts === 'string' && !Number.isNaN(Date.parse(ts)) && ts.endsWith('Z');
+}
+
 /** Non-null only when ts is a parseable timestamp that is NOT UTC "Z"-suffixed — used to give a precise error instead of the generic "invalid" message. */
 function tsOffsetError(ts: unknown): string | null {
-  if (typeof ts !== 'string' || Number.isNaN(Date.parse(ts))) return null;
-  if (ts.endsWith('Z')) return null;
+  if (isUtcIsoTs(ts) || typeof ts !== 'string' || Number.isNaN(Date.parse(ts))) return null;
   return `ts "${ts}" must be UTC ISO-8601 ending in "Z" — messages are sorted lexicographically by ts, which is only provably safe for UTC "Z" timestamps`;
 }
 
@@ -13,7 +17,7 @@ function isTranscriptMessage(x: unknown): x is TranscriptMessage {
   if (typeof x !== 'object' || x === null) return false;
   const m = x as Record<string, unknown>;
   return (
-    typeof m['ts'] === 'string' && !Number.isNaN(Date.parse(m['ts'])) && m['ts'].endsWith('Z') &&
+    isUtcIsoTs(m['ts']) &&
     typeof m['channel'] === 'string' && m['channel'].length > 0 &&
     typeof m['author'] === 'string' && m['author'].length > 0 &&
     typeof m['text'] === 'string'

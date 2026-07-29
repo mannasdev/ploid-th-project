@@ -1,8 +1,8 @@
+import { resolveDbPath } from './config.js';
 import { MemoryStore } from './store.js';
 
 function main(): void {
-  const dbPath = process.env['MEMORY_DB'] ?? './memory.db';
-  const store = new MemoryStore(dbPath);
+  const store = new MemoryStore(resolveDbPath());
   try {
     const all = store.allMemories();
     if (all.length === 0) {

@@ -35,6 +35,13 @@ function indexLine(m: Memory): string {
   return `[${m.id}] (${m.channel} ${m.scope}:${m.subject} ${m.kind}, ${m.certainty}) ${m.statement}`;
 }
 
+/** Coerce an LLM-supplied id list to numbers we actually offered — anything else is discarded. */
+function filterValidIds(raw: unknown, allowed: ReadonlySet<number>): number[] {
+  return Array.isArray(raw)
+    ? raw.filter((n): n is number => typeof n === 'number' && allowed.has(n))
+    : [];
+}
+
 export async function answerQuestion(
   store: MemoryStore,
   llm: Llm,
@@ -49,13 +56,10 @@ export async function answerQuestion(
     user: `Question: ${question}\n\nMemory index:\n${active.map(indexLine).join('\n')}`,
     toolName: 'select_memories',
     toolDescription: 'Select the ids of the memories relevant to the question.',
-    schema: SELECT_SCHEMA as unknown as Record<string, unknown>,
+    schema: SELECT_SCHEMA,
     maxTokens: 300,
   });
-  const validIds = new Set(active.map((m) => m.id));
-  const ids = Array.isArray(selection.memory_ids)
-    ? selection.memory_ids.filter((n): n is number => typeof n === 'number' && validIds.has(n))
-    : [];
+  const ids = filterValidIds(selection.memory_ids, new Set(active.map((m) => m.id)));
   if (ids.length === 0) {
     return { answer: "I don't have anything in memory about that.", citedMemoryIds: [] };
   }
@@ -69,12 +73,10 @@ export async function answerQuestion(
     user: `Question: ${question}\n\nMemories:\n${rendered}`,
     toolName: 'answer',
     toolDescription: 'Answer the question from the memories, citing the ids you used.',
-    schema: ANSWER_SCHEMA as unknown as Record<string, unknown>,
+    schema: ANSWER_SCHEMA,
     maxTokens: 500,
   });
-  const cited = Array.isArray(result.cited_memory_ids)
-    ? result.cited_memory_ids.filter((n): n is number => typeof n === 'number' && ids.includes(n))
-    : [];
+  const cited = filterValidIds(result.cited_memory_ids, new Set(ids));
   return {
     answer: typeof result.answer === 'string' ? result.answer : "I couldn't produce an answer.",
     citedMemoryIds: cited,

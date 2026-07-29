@@ -1,5 +1,4 @@
-import { readFileSync } from 'node:fs';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { loadConfig } from './config.js';
@@ -142,18 +141,25 @@ async function main(): Promise<void> {
 
     console.log('\n--- QA scenarios ---');
     const scenarios = JSON.parse(readFileSync('eval/scenarios.json', 'utf8')) as Scenario[];
+    // Ingestion is complete and the store is read-only from here, so scenario
+    // chains are independent — run them concurrently, report in file order.
+    const results = await Promise.all(
+      scenarios.map(async (s) => {
+        const { answer } = await answerQuestion(store, llm, s.question, s.as_of);
+        const judged = await llm.structured<{ verdict: string; reason: string }>({
+          system: JUDGE_SYSTEM,
+          user: `Question: ${s.question}\nGold answer: ${s.expected}\nSystem answer: ${answer}`,
+          toolName: 'grade',
+          toolDescription: 'Grade the system answer against the gold answer.',
+          schema: JUDGE_SCHEMA,
+          maxTokens: 300,
+        });
+        return { s, answer, judged };
+      }),
+    );
     const byCategory = new Map<string, { pass: number; total: number }>();
     let qaFails = 0;
-    for (const s of scenarios) {
-      const { answer } = await answerQuestion(store, llm, s.question, s.as_of);
-      const judged = await llm.structured<{ verdict: string; reason: string }>({
-        system: JUDGE_SYSTEM,
-        user: `Question: ${s.question}\nGold answer: ${s.expected}\nSystem answer: ${answer}`,
-        toolName: 'grade',
-        toolDescription: 'Grade the system answer against the gold answer.',
-        schema: JUDGE_SCHEMA as unknown as Record<string, unknown>,
-        maxTokens: 300,
-      });
+    for (const { s, answer, judged } of results) {
       const ok = judged.verdict === 'correct';
       if (!ok) qaFails += 1;
       const cat = byCategory.get(s.category) ?? { pass: 0, total: 0 };

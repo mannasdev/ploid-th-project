@@ -6,7 +6,7 @@ export interface StructuredCallOptions {
   user: string;
   toolName: string;
   toolDescription: string;
-  schema: Record<string, unknown>;
+  schema: object;
   maxTokens?: number;
 }
 

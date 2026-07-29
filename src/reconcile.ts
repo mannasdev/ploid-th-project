@@ -39,33 +39,34 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
   return false;
 }
 
-/** Code-enforced invariants (not prompt vibes): a tentative fact never supersedes OR rewords a decided one; a decided update of a tentative target escalates to supersede so certainty isn't left stuck; unknown/targetless supersede and noop targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
+/**
+ * Code-enforced invariants (not prompt vibes), applied uniformly to every op that names a target:
+ * unknown targets fall back to add; a tentative fact never supersedes or rewords a decided one;
+ * a decided update of a tentative target escalates to supersede so certainty isn't left stuck;
+ * a fact never supersedes a target established after it (no backwards-in-time supersession).
+ */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,
   fact: CandidateFact,
   factTs: string,
   candidates: Memory[],
 ): ReconcileDecision {
-  if (decision.op === 'noop') {
-    const target = candidates.find((c) => c.id === decision.target_id);
-    if (!target) return { op: 'add' };
-    return decision;
-  }
+  if (decision.op === 'add') return decision;
+  const target = candidates.find((c) => c.id === decision.target_id);
+  if (!target) return { op: 'add' };
+  if (decision.op === 'noop') return decision;
+
+  const tentativeTouchesDecided = fact.certainty === 'tentative' && target.certainty === 'decided';
+  const backwardsInTime = target.created_at > factTs;
+
   if (decision.op === 'update') {
-    const target = candidates.find((c) => c.id === decision.target_id);
-    if (target && fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
-    if (target && fact.certainty === 'decided' && target.certainty === 'tentative') {
-      if (target.created_at > factTs) return { op: 'add' };
-      return { op: 'supersede', target_id: decision.target_id };
+    if (tentativeTouchesDecided) return { op: 'add' };
+    if (fact.certainty === 'decided' && target.certainty === 'tentative') {
+      return backwardsInTime ? { op: 'add' } : { op: 'supersede', target_id: decision.target_id };
     }
     return decision;
   }
-  if (decision.op !== 'supersede') return decision;
-  const target = candidates.find((c) => c.id === decision.target_id);
-  if (!target) return { op: 'add' };
-  if (fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
-  if (target.created_at > factTs) return { op: 'add' };
-  return decision;
+  return tentativeTouchesDecided || backwardsInTime ? { op: 'add' } : decision;
 }
 
 function renderCandidates(candidates: Memory[]): string {
@@ -92,7 +93,7 @@ export async function reconcileFact(
     user: `New candidate fact (${fact.kind}, ${fact.certainty}, from message at ${factTs}):\n"${fact.statement}"\n\nExisting ACTIVE memories for subject "${fact.subject}":\n${renderCandidates(candidates)}`,
     toolName: 'reconcile',
     toolDescription: 'Choose how the new fact relates to the existing memories.',
-    schema: RECONCILE_SCHEMA as unknown as Record<string, unknown>,
+    schema: RECONCILE_SCHEMA,
     maxTokens: 500,
   });
   const decision = isValidDecision(raw) ? raw : ({ op: 'add' } as const);

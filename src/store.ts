@@ -105,7 +105,17 @@ export class MemoryStore {
         channel, fact.scope, fact.subject, fact.kind, fact.statement,
         fact.certainty, fact.confidence, createdAt, JSON.stringify(fact.source_msg_ids),
       );
-    return this.byId(Number(info.lastInsertRowid));
+    // Every column is known locally — build the row in-process instead of re-SELECTing it.
+    return {
+      ...fact,
+      source_msg_ids: [...fact.source_msg_ids],
+      id: Number(info.lastInsertRowid),
+      channel,
+      status: 'active',
+      created_at: createdAt,
+      invalid_at: null,
+      superseded_by: null,
+    };
   }
 
   private byId(id: number): Memory {
