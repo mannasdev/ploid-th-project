@@ -130,9 +130,25 @@ const STORE_CHECKS: StoreCheck[] = [
   },
 ];
 
-const FIXTURES = ['fixtures/launch-a.json', 'fixtures/launch-b.json', 'fixtures/platform-eng.json'];
+const DEFAULT_FIXTURES = ['fixtures/launch-a.json', 'fixtures/launch-b.json', 'fixtures/platform-eng.json'];
+
+/** Optional overrides: --fixtures a.json,b.json --scenarios path.json (defaults: the tuned fixture set). */
+function parseEvalArgs(argv: string[]): { fixtures: string[]; scenariosPath: string; isDefaultFixtures: boolean } {
+  const args = argv.slice(2);
+  const opt = (flag: string): string | undefined => {
+    const i = args.indexOf(flag);
+    return i !== -1 ? args[i + 1] : undefined;
+  };
+  const fixturesArg = opt('--fixtures');
+  return {
+    fixtures: fixturesArg ? fixturesArg.split(',') : DEFAULT_FIXTURES,
+    scenariosPath: opt('--scenarios') ?? 'eval/scenarios.json',
+    isDefaultFixtures: fixturesArg === undefined,
+  };
+}
 
 async function main(): Promise<void> {
+  const { fixtures, scenariosPath, isDefaultFixtures } = parseEvalArgs(process.argv);
   const cfg = loadConfig();
   const dir = mkdtempSync(join(tmpdir(), 'memory-eval-'));
   const dbPath = join(dir, 'eval.db');
@@ -146,19 +162,23 @@ async function main(): Promise<void> {
     const judgeLlm = new Llm({ ...cfg, model: process.env['MEMORY_JUDGE_MODEL'] ?? 'claude-sonnet-5' });
 
     console.log('--- ingest ---');
-    for (const f of FIXTURES) await ingestTranscript(store, llm, f);
+    for (const f of fixtures) await ingestTranscript(store, llm, f);
 
-    console.log('\n--- store checks ---');
-    const all = store.allMemories();
     let storeFails = 0;
-    for (const check of STORE_CHECKS) {
-      const ok = check.run(all);
-      if (!ok) storeFails += 1;
-      console.log(`${ok ? 'PASS' : 'FAIL'}  ${check.id}: ${check.description}`);
+    if (isDefaultFixtures) {
+      console.log('\n--- store checks ---');
+      const all = store.allMemories();
+      for (const check of STORE_CHECKS) {
+        const ok = check.run(all);
+        if (!ok) storeFails += 1;
+        console.log(`${ok ? 'PASS' : 'FAIL'}  ${check.id}: ${check.description}`);
+      }
+    } else {
+      console.log('\n--- store checks skipped (fixture-specific; custom fixtures supplied) ---');
     }
 
     console.log('\n--- QA scenarios ---');
-    const scenarios = JSON.parse(readFileSync('eval/scenarios.json', 'utf8')) as Scenario[];
+    const scenarios = JSON.parse(readFileSync(scenariosPath, 'utf8')) as Scenario[];
     // Ingestion is complete and the store is read-only from here, so scenario
     // chains are independent — run them concurrently, report in file order.
     const results = await Promise.all(
@@ -190,7 +210,7 @@ async function main(): Promise<void> {
 
     console.log('\n--- scorecard ---');
     for (const [cat, { pass, total }] of byCategory) console.log(`${cat.padEnd(17)} ${pass}/${total}`);
-    console.log(`store checks      ${STORE_CHECKS.length - storeFails}/${STORE_CHECKS.length}`);
+    if (isDefaultFixtures) console.log(`store checks      ${STORE_CHECKS.length - storeFails}/${STORE_CHECKS.length}`);
     store.close();
 
     if (storeFails + qaFails > 0) {

@@ -1,0 +1,72 @@
+[
+  {
+    "id": "team-rule-copy-approval",
+    "category": "single_hop",
+    "question": "What rule did the team adopt about copy changes on the site redesign project?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "All copy changes must be approved by Sofia before being considered final — proposed by Greg and agreed to by Kira and Sofia on September 4, 2026."
+  },
+  {
+    "id": "review-date-update",
+    "category": "knowledge_update",
+    "question": "As of the as_of date, what date is the stakeholder review for the homepage mockups scheduled for?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "September 17, 2026. It was originally set for September 10, 2026, but was moved on September 8, 2026 after legal needed another week to review the updated privacy copy — September 10 is now outdated and incorrect."
+  },
+  {
+    "id": "joke-comic-sans",
+    "category": "abstention",
+    "question": "Did the team decide to make the new homepage use Comic Sans?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Not known / no. This was a sarcastic joke from Ben on September 2, 2026 ('very y2k revival energy'), and Sofia immediately vetoed it. It was never a real proposal or decision."
+  },
+  {
+    "id": "speculation-dark-mode",
+    "category": "abstention",
+    "question": "Did the team commit to building a dark mode toggle for the blog?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Not known / no commitment was made. Sofia floated it as a passing 'what if' on September 2, 2026, and Ben called it a v2 idea for later; nobody committed to it or assigned it to anyone."
+  },
+  {
+    "id": "tagline-ownership",
+    "category": "attribution",
+    "question": "Who took ownership of writing the new hero tagline options, and who asked for it?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Wren agreed to take a first pass at the tagline options ('sure, i can take a stab at it') after Kira asked on September 3, 2026 for 5-6 options by end of week."
+  },
+  {
+    "id": "greg-back-before-reversal",
+    "category": "multi_hop",
+    "question": "Was Greg back from his time off by the time the team decided to move the stakeholder review date?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "No. Greg said on September 2, 2026 that he'd be out the following week and back Wednesday, September 9, 2026, but the decision to move the review to September 17 was made on September 8, 2026 — the day before he returned — so he was not there for it."
+  },
+  {
+    "id": "greg-availability",
+    "category": "single_hop",
+    "question": "Is Greg around as of the as_of date, or should people expect him to still be out?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Greg is back and should be reachable. He said on September 2, 2026 that he'd be out the following week and back Wednesday, September 9, 2026, which is before the as_of date of September 10, 2026."
+  },
+  {
+    "id": "agency-designer-change",
+    "category": "single_hop",
+    "question": "What did Ben relay about the agency's lead designer?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Ben said, secondhand, on September 3, 2026, that the agency's lead designer (who is not in this channel) is moving to a different internal team next month, meaning the redesign project may get reassigned to a new point of contact. No replacement name was given."
+  },
+  {
+    "id": "multihop-tagline-signoff",
+    "category": "multi_hop",
+    "question": "Under the team's new copy-approval rule, whose sign-off does Wren need before the new hero taglines can be considered final?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Sofia's. The team agreed on September 4, 2026 that all copy changes need Sofia's approval before being final, and Wren is the one drafting the new hero tagline options (agreed to on September 3, 2026), so those taglines need to go through Sofia."
+  },
+  {
+    "id": "legal-signoff-status",
+    "category": "abstention",
+    "question": "Has legal signed off on the updated privacy copy for the beta rollout of the new hero section?",
+    "as_of": "2026-09-10T09:00:00Z",
+    "expected": "Not known / unresolved as of the as_of date. Sofia said on September 8, 2026 that a beta rollout depends on legal's sign-off on the updated privacy copy, but no confirmation of that sign-off appears anywhere in the channel."
+  }
+]

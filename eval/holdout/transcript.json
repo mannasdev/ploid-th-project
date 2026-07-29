@@ -1,0 +1,146 @@
+[
+  {
+    "ts": "2026-09-01T14:02:00Z",
+    "channel": "site-redesign",
+    "author": "kira",
+    "text": "morning all 👋 kicking off this channel for the site redesign work"
+  },
+  {
+    "ts": "2026-09-01T14:10:00Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "ok so for the homepage mockups — let's do stakeholder review next thursday the 10th, gives us time to polish first"
+  },
+  {
+    "ts": "2026-09-01T14:11:00Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "next thursday works for me"
+  },
+  {
+    "ts": "2026-09-01T14:12:30Z",
+    "channel": "site-redesign",
+    "author": "kira",
+    "text": "same, i'll grab a room and send invites"
+  },
+  {
+    "ts": "2026-09-01T14:20:00Z",
+    "channel": "site-redesign",
+    "author": "greg",
+    "text": "quick q — are we doing the nav redesign in this same pass or is that separate?"
+  },
+  {
+    "ts": "2026-09-01T14:21:15Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "same pass, nav needs to match the new visual direction anyway"
+  },
+  {
+    "ts": "2026-09-02T09:14:00Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "counterpoint: what if we just made the whole homepage comic sans, very y2k revival energy 😂"
+  },
+  {
+    "ts": "2026-09-02T09:15:20Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "LOL absolutely not, hard veto"
+  },
+  {
+    "ts": "2026-09-02T09:20:45Z",
+    "channel": "site-redesign",
+    "author": "greg",
+    "text": "heads up, i'm out next week, back wednesday — ping me after that if you need anything from me"
+  },
+  {
+    "ts": "2026-09-02T13:00:00Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "what if we added a dark mode toggle to the blog section? just thinking out loud"
+  },
+  {
+    "ts": "2026-09-02T13:02:10Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "interesting, but feels like a v2 thing, not now"
+  },
+  {
+    "ts": "2026-09-03T11:00:00Z",
+    "channel": "site-redesign",
+    "author": "kira",
+    "text": "can someone own writing new tagline options for the hero? need like 5-6 by end of week"
+  },
+  {
+    "ts": "2026-09-03T11:15:30Z",
+    "channel": "site-redesign",
+    "author": "wren",
+    "text": "sure, i can take a stab at it"
+  },
+  {
+    "ts": "2026-09-03T15:40:00Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "fyi heard from the agency side — their lead designer is moving to a different internal team next month, so we might get reassigned to someone new for the visual system"
+  },
+  {
+    "ts": "2026-09-04T10:00:00Z",
+    "channel": "site-redesign",
+    "author": "greg",
+    "text": "can we make it a rule that all copy changes go through sofia before anything's called final? keeps us from having five versions floating around"
+  },
+  {
+    "ts": "2026-09-04T10:02:20Z",
+    "channel": "site-redesign",
+    "author": "kira",
+    "text": "agreed, good rule, let's do that going forward"
+  },
+  {
+    "ts": "2026-09-04T14:00:00Z",
+    "channel": "site-redesign",
+    "author": "wren",
+    "text": "random but the coffee machine on our floor is finally fixed lol"
+  },
+  {
+    "ts": "2026-09-04T14:01:05Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "miracles do happen"
+  },
+  {
+    "ts": "2026-09-08T09:30:00Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "maybe we open the new hero section to a small beta group before full rollout — depends on whether legal signs off on the updated privacy copy in time"
+  },
+  {
+    "ts": "2026-09-08T09:32:40Z",
+    "channel": "site-redesign",
+    "author": "kira",
+    "text": "makes sense, let's see where legal lands"
+  },
+  {
+    "ts": "2026-09-08T15:00:00Z",
+    "channel": "site-redesign",
+    "author": "sofia",
+    "text": "ok bad news — legal needs another week on the privacy copy, so the stakeholder review can't happen this thursday. let's push it to the week after, sept 17?"
+  },
+  {
+    "ts": "2026-09-08T15:02:15Z",
+    "channel": "site-redesign",
+    "author": "ben",
+    "text": "sept 17 works, i'll update the invite"
+  },
+  {
+    "ts": "2026-09-09T16:00:00Z",
+    "channel": "site-redesign",
+    "author": "greg",
+    "text": "back! what'd i miss"
+  },
+  {
+    "ts": "2026-09-09T16:02:30Z",
+    "channel": "site-redesign",
+    "author": "wren",
+    "text": "not much, mostly taglines and a very nearly comic sans homepage"
+  }
+]

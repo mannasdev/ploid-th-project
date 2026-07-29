@@ -2,7 +2,9 @@
   "name": "channel-memory",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "ingest": "tsx src/ingest.ts",
     "query": "tsx src/query.ts",
@@ -10,7 +12,8 @@
     "demo": "bash demo.sh",
     "eval": "tsx src/eval.ts",
     "test": "node --import tsx --test tests/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "eval:holdout": "tsx src/eval.ts --fixtures eval/holdout/transcript.json --scenarios eval/holdout/scenarios.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

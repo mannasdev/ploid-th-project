@@ -10,9 +10,10 @@ interface Scenario {
   expected: string;
 }
 
-const scenarios = JSON.parse(
-  readFileSync(new URL('../eval/scenarios.json', import.meta.url), 'utf8'),
-) as Scenario[];
+const scenarios = [
+  ...(JSON.parse(readFileSync(new URL('../eval/scenarios.json', import.meta.url), 'utf8')) as Scenario[]),
+  ...(JSON.parse(readFileSync(new URL('../eval/holdout/scenarios.json', import.meta.url), 'utf8')) as Scenario[]),
+];
 // eval.ts runs the live, credentialed harness at module load, so inspect its
 // source rather than importing it into the offline test process. query.ts is
 // read as source too so the unexported ANSWER_SYSTEM template is covered.
