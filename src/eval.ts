@@ -76,6 +76,22 @@ const STORE_CHECKS: StoreCheck[] = [
     description: 'at least two supersessions occurred (launch date + deploy freeze)',
     run: (all) => all.filter((m) => m.status === 'superseded').length >= 2,
   },
+  {
+    id: 'sc-freeze-lineage',
+    description: 'the freeze decision was superseded BY the cancellation fact (target-aware, not just counted)',
+    run: (all) => {
+      const frozen = all.find(
+        (m) => /freeze/i.test(m.statement) && m.status === 'superseded' && m.superseded_by !== null,
+      );
+      if (!frozen) return false;
+      const successor = all.find((m) => m.id === frozen.superseded_by);
+      return (
+        successor !== undefined &&
+        successor.status === 'active' &&
+        /cancel|scrap|no deploy freeze|no freeze/i.test(successor.statement)
+      );
+    },
+  },
 ];
 
 const FIXTURES = ['fixtures/launch-a.json', 'fixtures/launch-b.json', 'fixtures/platform-eng.json'];

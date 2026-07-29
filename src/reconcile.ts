@@ -92,10 +92,13 @@ export async function reconcileFact(
     case 'update': {
       const target = candidates.find((c) => c.id === guarded.target_id);
       if (!target) { store.insertMemory(channel, fact, factTs); return 'add'; }
+      console.log(`  ↳ updates [${target.id}] "${target.statement}"`);
       store.updateStatement(target.id, guarded.statement, fact.source_msg_ids);
       return 'update';
     }
     case 'supersede': {
+      const target = candidates.find((c) => c.id === guarded.target_id);
+      if (target) console.log(`  ↳ supersedes [${guarded.target_id}] "${target.statement}"`);
       const created = store.insertMemory(channel, fact, factTs);
       store.supersede(guarded.target_id, created.id, factTs);
       return 'supersede';

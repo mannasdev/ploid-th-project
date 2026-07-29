@@ -69,18 +69,18 @@ const RECORD_FACTS_SCHEMA = {
   required: ['facts'],
 } as const;
 
-function weekday(ts: string): string {
+export function weekday(ts: string): string {
   return new Date(ts).toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' });
 }
 
 /** ISO weekday: Monday=1 ... Sunday=7. */
-function isoWeekday(d: Date): number {
+export function isoWeekday(d: Date): number {
   const day = d.getUTCDay(); // 0=Sun..6=Sat
   return day === 0 ? 7 : day;
 }
 
 /** The Monday that starts the calendar week AFTER the one containing ts — i.e. what "next week" means, computed in code so the model never has to. */
-function nextWeekMonday(ts: string): string {
+export function nextWeekMonday(ts: string): string {
   const d = new Date(ts);
   const daysUntilNextMonday = 8 - isoWeekday(d);
   const next = new Date(d.getTime() + daysUntilNextMonday * 86_400_000);
