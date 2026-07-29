@@ -2,7 +2,7 @@
   "name": "channel-memory",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22" },
   "scripts": {
     "ingest": "tsx src/ingest.ts",
     "query": "tsx src/query.ts",
