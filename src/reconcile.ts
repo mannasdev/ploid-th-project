@@ -95,7 +95,8 @@ export async function reconcileFact(
       return 'supersede';
     }
     case 'noop': {
-      if (guarded.target_id !== undefined) store.mergeSourceIds(guarded.target_id, fact.source_msg_ids);
+      const target = candidates.find((c) => c.id === guarded.target_id);
+      if (target) store.mergeSourceIds(target.id, fact.source_msg_ids);
       return 'noop';
     }
   }
