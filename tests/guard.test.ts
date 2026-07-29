@@ -12,21 +12,28 @@ const memory = (id: number, certainty: Memory['certainty']): Memory => ({
   created_at: '2026-07-20T10:00:00Z', invalid_at: null, superseded_by: null,
 });
 
+const TS = '2026-07-22T15:34:00Z'; // fact timestamp later than memory() created_at
+
 test('tentative supersede of decided downgrades to add', () => {
-  const out = applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('tentative'), [memory(1, 'decided')]);
+  const out = applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('tentative'), TS, [memory(1, 'decided')]);
   assert.deepEqual(out, { op: 'add' });
 });
 
 test('decided may supersede tentative and decided', () => {
-  assert.equal(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), [memory(1, 'tentative')]).op, 'supersede');
-  assert.equal(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), [memory(1, 'decided')]).op, 'supersede');
+  assert.equal(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), TS, [memory(1, 'tentative')]).op, 'supersede');
+  assert.equal(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), TS, [memory(1, 'decided')]).op, 'supersede');
 });
 
 test('supersede of unknown target downgrades to add', () => {
-  assert.deepEqual(applyCertaintyGuard({ op: 'supersede', target_id: 99 }, fact('decided'), [memory(1, 'decided')]), { op: 'add' });
+  assert.deepEqual(applyCertaintyGuard({ op: 'supersede', target_id: 99 }, fact('decided'), TS, [memory(1, 'decided')]), { op: 'add' });
+});
+
+test('supersede of a target established after the fact downgrades to add (no backwards supersession)', () => {
+  const earlierTs = '2026-07-20T09:00:00Z'; // fact predates memory(1).created_at
+  assert.deepEqual(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), earlierTs, [memory(1, 'decided')]), { op: 'add' });
 });
 
 test('non-supersede ops pass through', () => {
   const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
-  assert.deepEqual(applyCertaintyGuard(upd, fact('tentative'), [memory(1, 'decided')]), upd);
+  assert.deepEqual(applyCertaintyGuard(upd, fact('tentative'), TS, [memory(1, 'decided')]), upd);
 });

@@ -12,6 +12,7 @@ export const RECONCILE_SYSTEM = `You maintain a memory store for a team chat. Yo
 
 Rules:
 - Facts that differ on numbers, dates, or key qualifiers are NEVER the same fact: that is "supersede" if they answer the same question, "add" if they answer different questions.
+- "supersede" is ONLY for a fact that answers the SAME question as the target with newer information. A fact that explains, justifies, or gives background for a change (e.g. why an old date was dropped) does not replace the fact carrying the new value — that is "add".
 - A tentative fact does not replace a decided one — prefer "add" so both are visible (the system enforces this).
 - Pick exactly one target_id for update/supersede/noop.`;
 
@@ -35,16 +36,18 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
   return false;
 }
 
-/** Code-enforced invariants (not prompt vibes): tentative never kills decided; unknown targets fall back to add. */
+/** Code-enforced invariants (not prompt vibes): tentative never kills decided; unknown targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,
   fact: CandidateFact,
+  factTs: string,
   candidates: Memory[],
 ): ReconcileDecision {
   if (decision.op !== 'supersede') return decision;
   const target = candidates.find((c) => c.id === decision.target_id);
   if (!target) return { op: 'add' };
   if (fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
+  if (target.created_at > factTs) return { op: 'add' };
   return decision;
 }
 
@@ -76,7 +79,7 @@ export async function reconcileFact(
     maxTokens: 500,
   });
   const decision = isValidDecision(raw) ? raw : ({ op: 'add' } as const);
-  const guarded = applyCertaintyGuard(decision, fact, candidates);
+  const guarded = applyCertaintyGuard(decision, fact, factTs, candidates);
 
   switch (guarded.op) {
     case 'add': {

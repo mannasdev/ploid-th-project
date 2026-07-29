@@ -26,11 +26,15 @@ export async function ingestTranscript(store: MemoryStore, llm: Llm, filePath: s
   };
 
   for (const [i, win] of windows(messages).entries()) {
-    const facts = await extractFacts(llm, win);
+    // Reconcile in chronological order of each fact's source messages, not
+    // extractor emission order — otherwise a later fact can be processed
+    // before the earlier fact that should lose to it (backwards supersession).
+    const facts = (await extractFacts(llm, win))
+      .map((fact) => ({ fact, ts: factTimestamp(fact, byId) }))
+      .sort((a, b) => a.ts.localeCompare(b.ts));
     report.extracted += facts.length;
     console.log(`window ${i + 1}: ${facts.length} fact(s)`);
-    for (const fact of facts) {
-      const ts = factTimestamp(fact, byId);
+    for (const { fact, ts } of facts) {
       const op = await reconcileFact(store, llm, channel, fact, ts);
       report.ops[op] += 1;
       console.log(`  ${op.toUpperCase().padEnd(9)} [${fact.scope}:${fact.subject}] ${fact.statement}`);
