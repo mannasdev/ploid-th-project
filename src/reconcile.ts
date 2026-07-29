@@ -39,13 +39,18 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
   return false;
 }
 
-/** Code-enforced invariants (not prompt vibes): tentative never kills decided; unknown targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
+/** Code-enforced invariants (not prompt vibes): a tentative fact never supersedes OR rewords a decided one; unknown supersede targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,
   fact: CandidateFact,
   factTs: string,
   candidates: Memory[],
 ): ReconcileDecision {
+  if (decision.op === 'update') {
+    const target = candidates.find((c) => c.id === decision.target_id);
+    if (target && fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
+    return decision;
+  }
   if (decision.op !== 'supersede') return decision;
   const target = candidates.find((c) => c.id === decision.target_id);
   if (!target) return { op: 'add' };

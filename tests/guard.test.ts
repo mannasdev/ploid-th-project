@@ -33,7 +33,14 @@ test('supersede of a target established after the fact downgrades to add (no bac
   assert.deepEqual(applyCertaintyGuard({ op: 'supersede', target_id: 1 }, fact('decided'), earlierTs, [memory(1, 'decided')]), { op: 'add' });
 });
 
-test('non-supersede ops pass through', () => {
+test('noop passes through untouched', () => {
+  const noop = { op: 'noop' as const, target_id: 1 };
+  assert.deepEqual(applyCertaintyGuard(noop, fact('tentative'), TS, [memory(1, 'decided')]), noop);
+});
+
+test('tentative update of decided downgrades to add; decided update of tentative/decided still passes through', () => {
   const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
-  assert.deepEqual(applyCertaintyGuard(upd, fact('tentative'), TS, [memory(1, 'decided')]), upd);
+  assert.deepEqual(applyCertaintyGuard(upd, fact('tentative'), TS, [memory(1, 'decided')]), { op: 'add' });
+  assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'tentative')]), upd);
+  assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'decided')]), upd);
 });

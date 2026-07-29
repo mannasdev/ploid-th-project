@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { loadConfig } from './config.js';
@@ -98,56 +98,63 @@ const FIXTURES = ['fixtures/launch-a.json', 'fixtures/launch-b.json', 'fixtures/
 
 async function main(): Promise<void> {
   const cfg = loadConfig();
-  const dbPath = join(mkdtempSync(join(tmpdir(), 'memory-eval-')), 'eval.db');
-  const store = new MemoryStore(dbPath);
-  const llm = new Llm(cfg);
+  const dir = mkdtempSync(join(tmpdir(), 'memory-eval-'));
+  const dbPath = join(dir, 'eval.db');
+  console.log(`eval db: ${dbPath}`);
+  try {
+    const store = new MemoryStore(dbPath);
+    const llm = new Llm(cfg);
 
-  console.log(`eval db: ${dbPath}\n--- ingest ---`);
-  for (const f of FIXTURES) await ingestTranscript(store, llm, f);
+    console.log('--- ingest ---');
+    for (const f of FIXTURES) await ingestTranscript(store, llm, f);
 
-  console.log('\n--- store checks ---');
-  const all = store.allMemories();
-  let storeFails = 0;
-  for (const check of STORE_CHECKS) {
-    const ok = check.run(all);
-    if (!ok) storeFails += 1;
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${check.id}: ${check.description}`);
+    console.log('\n--- store checks ---');
+    const all = store.allMemories();
+    let storeFails = 0;
+    for (const check of STORE_CHECKS) {
+      const ok = check.run(all);
+      if (!ok) storeFails += 1;
+      console.log(`${ok ? 'PASS' : 'FAIL'}  ${check.id}: ${check.description}`);
+    }
+
+    console.log('\n--- QA scenarios ---');
+    const scenarios = JSON.parse(readFileSync('eval/scenarios.json', 'utf8')) as Scenario[];
+    const byCategory = new Map<string, { pass: number; total: number }>();
+    let qaFails = 0;
+    for (const s of scenarios) {
+      const { answer } = await answerQuestion(store, llm, s.question, s.as_of);
+      const judged = await llm.structured<{ verdict: string; reason: string }>({
+        system: JUDGE_SYSTEM,
+        user: `Question: ${s.question}\nGold answer: ${s.expected}\nSystem answer: ${answer}`,
+        toolName: 'grade',
+        toolDescription: 'Grade the system answer against the gold answer.',
+        schema: JUDGE_SCHEMA as unknown as Record<string, unknown>,
+        maxTokens: 300,
+      });
+      const ok = judged.verdict === 'correct';
+      if (!ok) qaFails += 1;
+      const cat = byCategory.get(s.category) ?? { pass: 0, total: 0 };
+      cat.total += 1;
+      if (ok) cat.pass += 1;
+      byCategory.set(s.category, cat);
+      console.log(`${ok ? 'PASS' : 'FAIL'}  ${s.id} [${s.category}] ${s.question}`);
+      if (!ok) console.log(`      answer: ${answer}\n      judge: ${judged.reason}`);
+    }
+
+    console.log('\n--- scorecard ---');
+    for (const [cat, { pass, total }] of byCategory) console.log(`${cat.padEnd(17)} ${pass}/${total}`);
+    console.log(`store checks      ${STORE_CHECKS.length - storeFails}/${STORE_CHECKS.length}`);
+    store.close();
+
+    if (storeFails + qaFails > 0) {
+      console.error(`\n${storeFails + qaFails} failure(s)`);
+      process.exitCode = 1;
+      return;
+    }
+    console.log('\nall green');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
-
-  console.log('\n--- QA scenarios ---');
-  const scenarios = JSON.parse(readFileSync('eval/scenarios.json', 'utf8')) as Scenario[];
-  const byCategory = new Map<string, { pass: number; total: number }>();
-  let qaFails = 0;
-  for (const s of scenarios) {
-    const { answer } = await answerQuestion(store, llm, s.question, s.as_of);
-    const judged = await llm.structured<{ verdict: string; reason: string }>({
-      system: JUDGE_SYSTEM,
-      user: `Question: ${s.question}\nGold answer: ${s.expected}\nSystem answer: ${answer}`,
-      toolName: 'grade',
-      toolDescription: 'Grade the system answer against the gold answer.',
-      schema: JUDGE_SCHEMA as unknown as Record<string, unknown>,
-      maxTokens: 300,
-    });
-    const ok = judged.verdict === 'correct';
-    if (!ok) qaFails += 1;
-    const cat = byCategory.get(s.category) ?? { pass: 0, total: 0 };
-    cat.total += 1;
-    if (ok) cat.pass += 1;
-    byCategory.set(s.category, cat);
-    console.log(`${ok ? 'PASS' : 'FAIL'}  ${s.id} [${s.category}] ${s.question}`);
-    if (!ok) console.log(`      answer: ${answer}\n      judge: ${judged.reason}`);
-  }
-
-  console.log('\n--- scorecard ---');
-  for (const [cat, { pass, total }] of byCategory) console.log(`${cat.padEnd(17)} ${pass}/${total}`);
-  console.log(`store checks      ${STORE_CHECKS.length - storeFails}/${STORE_CHECKS.length}`);
-  store.close();
-
-  if (storeFails + qaFails > 0) {
-    console.error(`\n${storeFails + qaFails} failure(s)`);
-    process.exit(1);
-  }
-  console.log('\nall green');
 }
 
 main().catch((err: unknown) => {
