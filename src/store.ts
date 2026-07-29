@@ -144,8 +144,11 @@ export class MemoryStore {
   }
 
   updateStatement(id: number, statement: string, extraSourceIds: string[]): void {
-    this.db.prepare('UPDATE memories SET statement = ? WHERE id = ?').run(statement, id);
-    this.mergeSourceIds(id, extraSourceIds);
+    const tx = this.db.transaction(() => {
+      this.db.prepare('UPDATE memories SET statement = ? WHERE id = ?').run(statement, id);
+      this.mergeSourceIds(id, extraSourceIds);
+    });
+    tx();
   }
 
   mergeSourceIds(id: number, extraSourceIds: string[]): void {

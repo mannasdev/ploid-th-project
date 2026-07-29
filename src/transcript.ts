@@ -2,15 +2,20 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { StoredMessage, TranscriptMessage } from './types.js';
 
-/** UTC "Z"-suffixed ISO-8601 — the only timestamp form accepted, so lexicographic ts ordering is provably chronological. */
+/** Fixed-width UTC ISO-8601 (no fractional seconds, no offsets) — the only form under which lexicographic order IS chronological order. */
+const UTC_TS_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+
+/** Strictly-formed UTC timestamp: fixed-width shape AND a real calendar date-time. Date.parse alone is not enough — V8 rolls impossible dates over (Feb 31 → Mar 3), so we require the parsed value to round-trip back to the same string. */
 function isUtcIsoTs(ts: unknown): ts is string {
-  return typeof ts === 'string' && !Number.isNaN(Date.parse(ts)) && ts.endsWith('Z');
+  if (typeof ts !== 'string' || !UTC_TS_RE.test(ts)) return false;
+  const ms = Date.parse(ts);
+  return !Number.isNaN(ms) && new Date(ms).toISOString() === `${ts.slice(0, -1)}.000Z`;
 }
 
-/** Non-null only when ts is a parseable timestamp that is NOT UTC "Z"-suffixed — used to give a precise error instead of the generic "invalid" message. */
+/** Non-null only when ts is a parseable timestamp in the WRONG form (offset, fractional seconds, non-fixed-width, rolled-over date) — gives a precise error instead of the generic "invalid" message. */
 function tsOffsetError(ts: unknown): string | null {
   if (isUtcIsoTs(ts) || typeof ts !== 'string' || Number.isNaN(Date.parse(ts))) return null;
-  return `ts "${ts}" must be UTC ISO-8601 ending in "Z" — messages are sorted lexicographically by ts, which is only provably safe for UTC "Z" timestamps`;
+  return `ts "${ts}" must be UTC ISO-8601 in the exact form "YYYY-MM-DDTHH:MM:SSZ" denoting a real calendar date-time — messages are sorted lexicographically by ts, which is only provably chronological for this fixed-width UTC form`;
 }
 
 function isTranscriptMessage(x: unknown): x is TranscriptMessage {

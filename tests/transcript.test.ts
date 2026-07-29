@@ -40,3 +40,15 @@ test('rejects a non-UTC-offset timestamp', () => {
     { ts: '2026-07-20T10:01:00+02:00', channel: '#launch', author: 'priya', text: 'hi' },
   ])), /UTC|"Z"/);
 });
+
+test('rejects fractional-seconds timestamps (would break lexicographic ordering)', () => {
+  assert.throws(() => loadTranscript(writeTmp([
+    { ts: '2026-07-20T10:01:00.500Z', channel: '#launch', author: 'priya', text: 'hi' },
+  ])), /UTC|fixed-width/);
+});
+
+test('rejects impossible calendar dates even in the right shape (V8 would roll Feb 31 to Mar 3)', () => {
+  assert.throws(() => loadTranscript(writeTmp([
+    { ts: '2026-02-31T10:01:00Z', channel: '#launch', author: 'priya', text: 'hi' },
+  ])), /UTC|real calendar/);
+});

@@ -97,10 +97,10 @@ function isValidFact(x: unknown): x is CandidateFact {
   if (typeof x !== 'object' || x === null) return false;
   const f = x as Record<string, unknown>;
   return (
-    typeof f['subject'] === 'string' && f['subject'].length > 0 &&
+    typeof f['subject'] === 'string' && f['subject'].trim().length > 0 &&
     SCOPES.includes(f['scope'] as never) &&
     KINDS.includes(f['kind'] as never) &&
-    typeof f['statement'] === 'string' && f['statement'].length > 0 &&
+    typeof f['statement'] === 'string' && f['statement'].trim().length > 0 &&
     CERTAINTIES.includes(f['certainty'] as never) &&
     typeof f['confidence'] === 'number' &&
     Array.isArray(f['source_msg_ids']) && f['source_msg_ids'].every((s) => typeof s === 'string')

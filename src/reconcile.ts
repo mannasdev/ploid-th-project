@@ -42,8 +42,10 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
 /**
  * Code-enforced invariants (not prompt vibes), applied uniformly to every op that names a target:
  * unknown targets fall back to add; a tentative fact never supersedes or rewords a decided one;
- * a decided update of a tentative target escalates to supersede so certainty isn't left stuck;
- * a fact never supersedes a target established after it (no backwards-in-time supersession).
+ * a decided fact confirming a tentative one escalates to supersede so certainty isn't left stuck
+ * (whether the reconciler said update OR noop); and chronology binds every mutation — a fact never
+ * supersedes a target established after it, and an older fact's wording never replaces a newer
+ * row's (a backwards update demotes to noop, keeping the newer wording and merging provenance).
  */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,
@@ -54,17 +56,21 @@ export function applyCertaintyGuard(
   if (decision.op === 'add') return decision;
   const target = candidates.find((c) => c.id === decision.target_id);
   if (!target) return { op: 'add' };
-  if (decision.op === 'noop') return decision;
 
   const tentativeTouchesDecided = fact.certainty === 'tentative' && target.certainty === 'decided';
+  const decidedConfirmsTentative = fact.certainty === 'decided' && target.certainty === 'tentative';
   const backwardsInTime = target.created_at > factTs;
 
+  if (decision.op === 'noop') {
+    if (decidedConfirmsTentative && !backwardsInTime) return { op: 'supersede', target_id: target.id };
+    return decision;
+  }
   if (decision.op === 'update') {
     if (tentativeTouchesDecided) return { op: 'add' };
-    if (fact.certainty === 'decided' && target.certainty === 'tentative') {
-      return backwardsInTime ? { op: 'add' } : { op: 'supersede', target_id: decision.target_id };
+    if (decidedConfirmsTentative) {
+      return backwardsInTime ? { op: 'add' } : { op: 'supersede', target_id: target.id };
     }
-    return decision;
+    return backwardsInTime ? { op: 'noop', target_id: target.id } : decision;
   }
   return tentativeTouchesDecided || backwardsInTime ? { op: 'add' } : decision;
 }

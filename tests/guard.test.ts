@@ -65,3 +65,20 @@ test('decided update of a tentative target established after the fact downgrades
   const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
   assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), earlierTs, [memory(1, 'tentative')]), { op: 'add' });
 });
+
+test('decided noop of a tentative target escalates to supersede (confirmation promotes certainty)', () => {
+  const noop = { op: 'noop' as const, target_id: 1 };
+  assert.deepEqual(applyCertaintyGuard(noop, fact('decided'), TS, [memory(1, 'tentative')]), { op: 'supersede', target_id: 1 });
+});
+
+test('decided noop of a tentative target established after the fact stays a noop (no backwards supersession)', () => {
+  const earlierTs = '2026-07-20T09:00:00Z'; // fact predates memory(1).created_at
+  const noop = { op: 'noop' as const, target_id: 1 };
+  assert.deepEqual(applyCertaintyGuard(noop, fact('decided'), earlierTs, [memory(1, 'tentative')]), noop);
+});
+
+test('update from a fact older than its target demotes to noop (newer wording wins, provenance merged)', () => {
+  const earlierTs = '2026-07-20T09:00:00Z'; // fact predates memory(1).created_at
+  const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
+  assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), earlierTs, [memory(1, 'decided')]), { op: 'noop', target_id: 1 });
+});

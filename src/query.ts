@@ -77,6 +77,10 @@ export async function answerQuestion(
     maxTokens: 500,
   });
   const cited = filterValidIds(result.cited_memory_ids, new Set(ids));
+  if (cited.length === 0) {
+    // An answer that cites none of the offered memories is ungrounded — refuse it structurally.
+    return { answer: "I don't have anything in memory about that.", citedMemoryIds: [] };
+  }
   return {
     answer: typeof result.answer === 'string' ? result.answer : "I couldn't produce an answer.",
     citedMemoryIds: cited,
