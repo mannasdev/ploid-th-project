@@ -1,0 +1,22 @@
+[
+  { "ts": "2026-07-23T09:00:00Z", "channel": "#platform-eng", "author": "tomas", "text": "morning — reminder the deploy window opens at 10" },
+  { "ts": "2026-07-23T09:02:00Z", "channel": "#platform-eng", "author": "jae", "text": "given the launch slip, should we freeze deploys next week?" },
+  { "ts": "2026-07-23T09:04:00Z", "channel": "#platform-eng", "author": "tomas", "text": "yeah let's do it — deploy freeze starting Monday" },
+  { "ts": "2026-07-23T09:05:00Z", "channel": "#platform-eng", "author": "jae", "text": "ack" },
+  { "ts": "2026-07-23T09:07:00Z", "channel": "#platform-eng", "author": "mei", "text": "wait — the billing fix has to ship next week or the Aug 21 launch slips again" },
+  { "ts": "2026-07-23T09:08:00Z", "channel": "#platform-eng", "author": "tomas", "text": "ugh, good point. ok scrap that — no freeze next week" },
+  { "ts": "2026-07-23T09:09:00Z", "channel": "#platform-eng", "author": "jae", "text": "make up your mind 😄" },
+  { "ts": "2026-07-23T09:11:00Z", "channel": "#platform-eng", "author": "tomas", "text": "also I'm on call next week" },
+  { "ts": "2026-07-23T09:12:00Z", "channel": "#platform-eng", "author": "jae", "text": "rip" },
+  { "ts": "2026-07-23T09:14:00Z", "channel": "#platform-eng", "author": "mei", "text": "btw marta from legal says the DPA with Acme is signed" },
+  { "ts": "2026-07-23T09:15:00Z", "channel": "#platform-eng", "author": "tomas", "text": "finally 🙌" },
+  { "ts": "2026-07-23T09:17:00Z", "channel": "#platform-eng", "author": "jae", "text": "can we please stop using @here for non-incidents, half the team is in EU hours" },
+  { "ts": "2026-07-23T09:18:00Z", "channel": "#platform-eng", "author": "tomas", "text": "+1, let's make that a rule" },
+  { "ts": "2026-07-23T09:19:00Z", "channel": "#platform-eng", "author": "mei", "text": "agreed" },
+  { "ts": "2026-07-23T09:21:00Z", "channel": "#platform-eng", "author": "jae", "text": "what if we rewrote the deploy pipeline in rust" },
+  { "ts": "2026-07-23T09:22:00Z", "channel": "#platform-eng", "author": "tomas", "text": "what if we didn't" },
+  { "ts": "2026-07-23T09:23:00Z", "channel": "#platform-eng", "author": "jae", "text": "fair" },
+  { "ts": "2026-07-23T09:25:00Z", "channel": "#platform-eng", "author": "mei", "text": "lunch? the new ramen place?" },
+  { "ts": "2026-07-23T09:26:00Z", "channel": "#platform-eng", "author": "tomas", "text": "in 20" },
+  { "ts": "2026-07-23T09:27:00Z", "channel": "#platform-eng", "author": "jae", "text": "🍜" }
+]

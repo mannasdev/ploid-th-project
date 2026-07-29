@@ -1,0 +1,16 @@
+[
+  { "ts": "2026-07-22T15:30:00Z", "channel": "#launch", "author": "sam", "text": "heads up — eng found a blocker in the billing migration" },
+  { "ts": "2026-07-22T15:31:00Z", "channel": "#launch", "author": "mei", "text": "how bad?" },
+  { "ts": "2026-07-22T15:32:00Z", "channel": "#launch", "author": "sam", "text": "bad enough that Aug 14 isn't happening" },
+  { "ts": "2026-07-22T15:33:00Z", "channel": "#launch", "author": "dan", "text": "great, love shipping in august 🙃" },
+  { "ts": "2026-07-22T15:34:00Z", "channel": "#launch", "author": "sam", "text": "talked to the eng lead — launch is moving to Aug 21" },
+  { "ts": "2026-07-22T15:35:00Z", "channel": "#launch", "author": "mei", "text": "ok. does marketing know?" },
+  { "ts": "2026-07-22T15:36:00Z", "channel": "#launch", "author": "sam", "text": "pinging them now" },
+  { "ts": "2026-07-22T15:38:00Z", "channel": "#launch", "author": "mei", "text": "maybe we should push the announcement email too? not sure yet" },
+  { "ts": "2026-07-22T15:39:00Z", "channel": "#launch", "author": "sam", "text": "let's see how the fix goes first" },
+  { "ts": "2026-07-22T15:40:00Z", "channel": "#launch", "author": "dan", "text": "sam you still good to own the checklist with the new date?" },
+  { "ts": "2026-07-22T15:41:00Z", "channel": "#launch", "author": "sam", "text": "yep, still on it" },
+  { "ts": "2026-07-22T15:41:30Z", "channel": "#launch", "author": "mei", "text": "sgtm" },
+  { "ts": "2026-07-22T15:44:00Z", "channel": "#launch", "author": "dan", "text": "woods option still on the table btw" },
+  { "ts": "2026-07-22T15:45:00Z", "channel": "#launch", "author": "sam", "text": "🌲" }
+]
