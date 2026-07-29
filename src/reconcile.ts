@@ -55,6 +55,7 @@ export function applyCertaintyGuard(
     const target = candidates.find((c) => c.id === decision.target_id);
     if (target && fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
     if (target && fact.certainty === 'decided' && target.certainty === 'tentative') {
+      if (target.created_at > factTs) return { op: 'add' };
       return { op: 'supersede', target_id: decision.target_id };
     }
     return decision;

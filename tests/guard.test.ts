@@ -59,3 +59,9 @@ test('decided update of a tentative target escalates to supersede, preserving ta
   const out = applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'tentative')]);
   assert.deepEqual(out, { op: 'supersede', target_id: 1 });
 });
+
+test('decided update of a tentative target established after the fact downgrades to add (no backwards supersession)', () => {
+  const earlierTs = '2026-07-20T09:00:00Z'; // fact predates memory(1).created_at
+  const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
+  assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), earlierTs, [memory(1, 'tentative')]), { op: 'add' });
+});
