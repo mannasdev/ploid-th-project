@@ -137,7 +137,13 @@ function parseEvalArgs(argv: string[]): { fixtures: string[]; scenariosPath: str
   const args = argv.slice(2);
   const opt = (flag: string): string | undefined => {
     const i = args.indexOf(flag);
-    return i !== -1 ? args[i + 1] : undefined;
+    if (i === -1) return undefined;
+    const value = args[i + 1];
+    if (!value || value.startsWith('--')) {
+      console.error(`${flag} requires a value`);
+      process.exit(1);
+    }
+    return value;
   };
   const fixturesArg = opt('--fixtures');
   return {

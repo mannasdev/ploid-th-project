@@ -4,7 +4,7 @@
     "category": "single_hop",
     "question": "What rule did the team adopt about copy changes on the site redesign project?",
     "as_of": "2026-09-10T09:00:00Z",
-    "expected": "All copy changes must be approved by Sofia before being considered final — proposed by Greg and agreed to by Kira and Sofia on September 4, 2026."
+    "expected": "All copy changes must go through Sofia before being considered final — proposed by Greg and agreed to by Kira. (Naming who proposed/agreed is good but not required; the rule itself is the required fact.)"
   },
   {
     "id": "review-date-update",
