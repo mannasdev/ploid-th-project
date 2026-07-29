@@ -34,3 +34,9 @@ test('rejects mixed channels and missing fields', () => {
   ])), /single channel/);
   assert.throws(() => loadTranscript(writeTmp([{ ts: '2026-07-20T10:01:00Z', author: 'x' }])), /missing|invalid/i);
 });
+
+test('rejects a non-UTC-offset timestamp', () => {
+  assert.throws(() => loadTranscript(writeTmp([
+    { ts: '2026-07-20T10:01:00+02:00', channel: '#launch', author: 'priya', text: 'hi' },
+  ])), /UTC|"Z"/);
+});

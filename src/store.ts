@@ -150,6 +150,16 @@ export class MemoryStore {
       .run(invalidAt, newId, oldId);
   }
 
+  /** Atomically inserts the superseding memory and closes the old row in one transaction. */
+  insertSuperseding(channel: string, fact: CandidateFact, createdAt: string, oldId: number): Memory {
+    const tx = this.db.transaction(() => {
+      const created = this.insertMemory(channel, fact, createdAt);
+      this.supersede(oldId, created.id, createdAt);
+      return created;
+    });
+    return tx();
+  }
+
   close(): void {
     this.db.close();
   }

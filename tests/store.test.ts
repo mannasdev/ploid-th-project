@@ -45,6 +45,19 @@ test('supersede closes the old row and keeps it queryable', () => {
   assert.equal(closed?.invalid_at, '2026-07-22T15:34:00Z');
 });
 
+test('insertSuperseding atomically inserts the new row and closes the old one, matching insert+supersede lineage', () => {
+  const store = new MemoryStore(':memory:');
+  const oldM = store.insertMemory('#launch', fact({ subject: '#launch', scope: 'channel', kind: 'deadline', statement: 'Launch is 2026-08-14.' }), '2026-07-20T10:05:00Z');
+  const newM = store.insertSuperseding('#launch', fact({ subject: '#launch', scope: 'channel', kind: 'deadline', statement: 'Launch is 2026-08-21.' }), '2026-07-22T15:34:00Z', oldM.id);
+  assert.equal(newM.status, 'active');
+  assert.equal(store.activeCandidates('#launch', '#launch').length, 1);
+  const all = store.allMemories();
+  const closed = all.find((m) => m.id === oldM.id);
+  assert.equal(closed?.status, 'superseded');
+  assert.equal(closed?.superseded_by, newM.id);
+  assert.equal(closed?.invalid_at, '2026-07-22T15:34:00Z');
+});
+
 test('updateStatement replaces wording and merges provenance', () => {
   const store = new MemoryStore(':memory:');
   const m = store.insertMemory('#launch', fact(), '2026-07-20T10:07:00Z');

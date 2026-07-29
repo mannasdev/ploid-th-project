@@ -72,7 +72,7 @@ npm run eval
 Ingests all three fixtures into a fresh temp DB, then runs two independent checks and prints a scorecard:
 
 - **13 LLM-judged QA scenarios** (`eval/scenarios.json`) across five categories — `single_hop`, `multi_hop`, `knowledge_update`, `abstention`, `attribution` — each graded by a Claude call that compares the system's answer to a gold answer.
-- **7 deterministic store checks** that need no judge at all — plain SQL/regex assertions like "the woods joke was never stored" or "the freeze decision's `superseded_by` points at a row whose statement is the cancellation, and that row is active" (`sc-freeze-lineage`).
+- **8 deterministic store checks** that need no judge at all — plain SQL/regex assertions like "the woods joke was never stored", "the freeze decision's `superseded_by` points at a row whose statement is the cancellation, and that row is active" (`sc-freeze-lineage`), or "every channel-scoped memory's subject is the channel itself" (`sc-channel-subject`).
 
 ```
 single_hop        5/5
@@ -80,7 +80,7 @@ knowledge_update  2/2
 abstention        3/3
 attribution       1/1
 multi_hop         2/2
-store checks      7/7
+store checks      8/8
 
 all green
 ```
@@ -148,6 +148,10 @@ Trigger extraction on thread-end or conversational lulls instead of a fixed 15-m
 - Re-ingesting an already-seen transcript is mostly absorbed by NOOP, not detected and skipped up front — messages themselves dedupe by content hash, but a repeated fact still costs a reconcile call.
 - Single-writer CLI: no concurrency control around the SQLite file beyond what `better-sqlite3`'s WAL mode gives you for free (and WAL is a no-op against `:memory:`, used only in tests).
 - `--as-of` is parsed with `Date.parse`, which accepts some non-ISO formats leniently — pass ISO-8601 timestamps as documented, not because anything else is rejected, but because anything else isn't guaranteed to mean what you think it means.
+- Transcript timestamps must be UTC ISO-8601 ending in `Z`; this is enforced at load (`loadTranscript`, `src/transcript.ts`) with a specific error rather than accepted-and-hoped-for, because it's the precondition that makes sorting `ts` lexicographically (windowing, fact ordering) provably safe instead of accidentally safe.
+- When a chronologically older fact arrives that contradicts a newer active one, the no-backwards-in-time-supersession guard demotes it to ADD rather than guessing which is "right" — the system conservatively keeps both facts active side by side instead of picking a winner from incomplete information. That's a documented tradeoff, not a gap: a stale-looking duplicate is a smaller failure than silently closing the correct current fact.
+- When a message mixes a vague range with a concrete date in the same breath ("out all next week — back the 28th"), extraction is prompted to anchor on the stated concrete date rather than the precomputed relative one, since an explicit date is the stronger, less ambiguous signal.
+- A malformed LLM response (no valid tool call at all) fails the ingest loudly — `Llm.structured` throws and the CLI exits non-zero — rather than being silently skipped; a per-fact schema mismatch inside an otherwise-valid response is the narrower case that's dropped with a logged warning (`extractFacts`, `src/extract.ts`).
 
 ## Where AI helped
 

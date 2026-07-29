@@ -142,7 +142,7 @@ export async function extractFacts(
     }
     facts.push({
       ...candidate,
-      subject: candidate.subject.trim().toLowerCase(),
+      subject: candidate.scope === 'channel' ? channel : candidate.subject.trim().toLowerCase(),
       confidence: Math.max(0, Math.min(1, candidate.confidence)),
       source_msg_ids: sourceIds,
     });

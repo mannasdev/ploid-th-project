@@ -47,12 +47,30 @@ const STORE_CHECKS: StoreCheck[] = [
   },
   {
     id: 'sc-aug14',
-    description: 'Aug 14 launch date exists, is superseded, and points at its replacement; no active Aug 14 remains',
+    description: 'Aug 14 launch date exists, is superseded, and its supersession chain terminates in an active row; no active Aug 14 remains; a decided Aug 21 launch deadline is active',
     run: (all) => {
       const aug14 = all.filter((m) => /2026-08-14/.test(m.statement) && m.kind !== 'availability');
-      return (
-        aug14.some((m) => m.status === 'superseded' && m.superseded_by !== null) &&
-        !aug14.some((m) => m.status === 'active')
+      if (
+        !aug14.some((m) => m.status === 'superseded' && m.superseded_by !== null) ||
+        aug14.some((m) => m.status === 'active')
+      ) return false;
+
+      const byId = new Map(all.map((m) => [m.id, m]));
+      for (const row of aug14.filter((m) => m.status === 'superseded')) {
+        const seen = new Set<number>();
+        let current: Memory = row;
+        while (current.status === 'superseded' && current.superseded_by !== null) {
+          if (seen.has(current.id)) return false; // cycle
+          seen.add(current.id);
+          const next = byId.get(current.superseded_by);
+          if (!next) return false; // missing pointer target
+          current = next;
+        }
+        if (current.status !== 'active') return false;
+      }
+
+      return all.some(
+        (m) => m.status === 'active' && m.kind === 'deadline' && m.channel === '#launch' && /2026-08-21/.test(m.statement),
       );
     },
   },
@@ -91,6 +109,11 @@ const STORE_CHECKS: StoreCheck[] = [
         /cancel|scrap|no deploy freeze|no freeze/i.test(successor.statement)
       );
     },
+  },
+  {
+    id: 'sc-channel-subject',
+    description: 'every channel-scoped memory has subject equal to its own channel',
+    run: (all) => all.filter((m) => m.scope === 'channel').every((m) => m.subject === m.channel),
   },
 ];
 

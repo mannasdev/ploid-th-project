@@ -38,9 +38,24 @@ test('noop passes through untouched', () => {
   assert.deepEqual(applyCertaintyGuard(noop, fact('tentative'), TS, [memory(1, 'decided')]), noop);
 });
 
-test('tentative update of decided downgrades to add; decided update of tentative/decided still passes through', () => {
+test('tentative update of decided downgrades to add; decided update of decided still passes through', () => {
   const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
   assert.deepEqual(applyCertaintyGuard(upd, fact('tentative'), TS, [memory(1, 'decided')]), { op: 'add' });
-  assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'tentative')]), upd);
   assert.deepEqual(applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'decided')]), upd);
+});
+
+test('noop with no target_id downgrades to add', () => {
+  const noop = { op: 'noop' as const };
+  assert.deepEqual(applyCertaintyGuard(noop, fact('decided'), TS, [memory(1, 'decided')]), { op: 'add' });
+});
+
+test('noop with an unknown target_id downgrades to add', () => {
+  const noop = { op: 'noop' as const, target_id: 99 };
+  assert.deepEqual(applyCertaintyGuard(noop, fact('decided'), TS, [memory(1, 'decided')]), { op: 'add' });
+});
+
+test('decided update of a tentative target escalates to supersede, preserving target_id', () => {
+  const upd = { op: 'update' as const, target_id: 1, statement: 'y' };
+  const out = applyCertaintyGuard(upd, fact('decided'), TS, [memory(1, 'tentative')]);
+  assert.deepEqual(out, { op: 'supersede', target_id: 1 });
 });

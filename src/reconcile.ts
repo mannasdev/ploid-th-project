@@ -39,16 +39,24 @@ function isValidDecision(x: unknown): x is ReconcileDecision {
   return false;
 }
 
-/** Code-enforced invariants (not prompt vibes): a tentative fact never supersedes OR rewords a decided one; unknown supersede targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
+/** Code-enforced invariants (not prompt vibes): a tentative fact never supersedes OR rewords a decided one; a decided update of a tentative target escalates to supersede so certainty isn't left stuck; unknown/targetless supersede and noop targets fall back to add; a fact never supersedes a target established AFTER it (no backwards-in-time supersession). */
 export function applyCertaintyGuard(
   decision: ReconcileDecision,
   fact: CandidateFact,
   factTs: string,
   candidates: Memory[],
 ): ReconcileDecision {
+  if (decision.op === 'noop') {
+    const target = candidates.find((c) => c.id === decision.target_id);
+    if (!target) return { op: 'add' };
+    return decision;
+  }
   if (decision.op === 'update') {
     const target = candidates.find((c) => c.id === decision.target_id);
     if (target && fact.certainty === 'tentative' && target.certainty === 'decided') return { op: 'add' };
+    if (target && fact.certainty === 'decided' && target.certainty === 'tentative') {
+      return { op: 'supersede', target_id: decision.target_id };
+    }
     return decision;
   }
   if (decision.op !== 'supersede') return decision;
@@ -104,8 +112,7 @@ export async function reconcileFact(
     case 'supersede': {
       const target = candidates.find((c) => c.id === guarded.target_id);
       if (target) console.log(`  ↳ supersedes [${guarded.target_id}] "${target.statement}"`);
-      const created = store.insertMemory(channel, fact, factTs);
-      store.supersede(guarded.target_id, created.id, factTs);
+      store.insertSuperseding(channel, fact, factTs, guarded.target_id);
       return 'supersede';
     }
     case 'noop': {
