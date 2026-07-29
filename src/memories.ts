@@ -1,9 +1,8 @@
-import { loadConfig } from './config.js';
 import { MemoryStore } from './store.js';
 
 function main(): void {
-  const cfg = loadConfig();
-  const store = new MemoryStore(cfg.dbPath);
+  const dbPath = process.env['MEMORY_DB'] ?? './memory.db';
+  const store = new MemoryStore(dbPath);
   try {
     const all = store.allMemories();
     if (all.length === 0) {
