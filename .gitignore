@@ -1,0 +1,8 @@
+node_modules/
+docs/
+.superpowers/
+Take Home.txt
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
