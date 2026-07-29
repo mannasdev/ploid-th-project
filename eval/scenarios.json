@@ -1,0 +1,15 @@
+[
+  { "id": "sh-1", "category": "single_hop", "question": "Is Priya around this week?", "as_of": "2026-07-23T12:00:00Z", "expected": "No — Priya is out and back on 2026-07-28." },
+  { "id": "sh-2", "category": "single_hop", "question": "Has legal signed the DPA with Acme?", "as_of": "2026-07-23T12:00:00Z", "expected": "Yes, the Acme DPA is signed (per Marta from legal)." },
+  { "id": "sh-3", "category": "single_hop", "question": "What's the team rule about @here?", "as_of": "2026-07-23T12:00:00Z", "expected": "Don't use @here for non-incidents." },
+  { "id": "sh-4", "category": "single_hop", "question": "Who is on call next week?", "as_of": "2026-07-23T12:00:00Z", "expected": "Tomas is on call the week of 2026-07-27." },
+  { "id": "sh-5", "category": "single_hop", "question": "Is the launch announcement email being delayed?", "as_of": "2026-07-23T12:00:00Z", "expected": "No decision — delaying it was tentatively raised but left open pending the billing fix." },
+  { "id": "ku-1", "category": "knowledge_update", "question": "When is the launch?", "as_of": "2026-07-23T12:00:00Z", "expected": "2026-08-21. (It was moved from 2026-08-14; Aug 14 must not be given as the current date.)" },
+  { "id": "ku-2", "category": "knowledge_update", "question": "Is there a deploy freeze next week?", "as_of": "2026-07-23T12:00:00Z", "expected": "No — a freeze was briefly decided and then scrapped so the billing fix can ship." },
+  { "id": "ab-1", "category": "abstention", "question": "What did Dan say about the woods?", "as_of": "2026-07-23T12:00:00Z", "expected": "Not in memory — correct behavior is to say it isn't known (it was a joke, never stored)." },
+  { "id": "ab-2", "category": "abstention", "question": "Where is the launch party going to be?", "as_of": "2026-07-23T12:00:00Z", "expected": "Not known — no venue was ever decided; correct behavior is to abstain." },
+  { "id": "ab-3", "category": "abstention", "question": "What database does the team use?", "as_of": "2026-07-23T12:00:00Z", "expected": "Not in memory — never discussed; correct behavior is to abstain." },
+  { "id": "at-1", "category": "attribution", "question": "Who owns the launch checklist?", "as_of": "2026-07-23T12:00:00Z", "expected": "Sam." },
+  { "id": "mh-1", "category": "multi_hop", "question": "Why was the deploy freeze cancelled?", "as_of": "2026-07-23T12:00:00Z", "expected": "Because the billing fix has to ship next week or the 2026-08-21 launch slips again." },
+  { "id": "mh-2", "category": "multi_hop", "question": "Who should I ask about the launch checklist while Priya is out?", "as_of": "2026-07-23T12:00:00Z", "expected": "Sam — he owns the checklist; Priya is back 2026-07-28." }
+]

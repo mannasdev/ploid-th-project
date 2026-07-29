@@ -6,15 +6,18 @@ export type AppliedOp = 'add' | 'update' | 'supersede' | 'noop';
 
 export const RECONCILE_SYSTEM = `You maintain a memory store for a team chat. You are given ONE new candidate fact and the existing ACTIVE memories about the same subject. Choose exactly one operation:
 - "add": genuinely new information not covered by any existing memory
-- "update": the same underlying fact as target_id with better/richer wording that does NOT change numbers, dates, or key qualifiers — provide the merged statement
+- "update": the same underlying fact as target_id with better/richer wording that does NOT change numbers, dates, or key qualifiers — provide the merged statement. The merged statement must stay fully self-contained and unambiguous: keep every qualifier from the original statement that still holds (who, why, under what condition), and if it carries a new number or date, say plainly what that number/date refers to — never leave a bare phrase like "the new date" unlabeled.
 - "supersede": the new fact contradicts or replaces target_id (a date moved, a decision reversed, a value changed). Newer information wins.
-- "noop": target_id already fully captures this fact
+- "noop": target_id already fully captures this fact — including when the new fact is just a reconfirmation of unchanged information (e.g. someone reaffirming an existing assignment)
 
 Rules:
 - Facts that differ on numbers, dates, or key qualifiers are NEVER the same fact: that is "supersede" if they answer the same question, "add" if they answer different questions.
 - "supersede" is ONLY for a fact that answers the SAME question as the target with newer information. A fact that explains, justifies, or gives background for a change (e.g. why an old date was dropped) does not replace the fact carrying the new value — that is "add".
 - A tentative fact does not replace a decided one — prefer "add" so both are visible (the system enforces this).
-- Pick exactly one target_id for update/supersede/noop.`;
+- Prefer "noop" over "update" for a bare reconfirmation. Never pad a merged statement with a number or date that belongs to a DIFFERENT subject's fact and is already tracked there (e.g. don't fold a launch date into a person's checklist-ownership statement) — that duplication is what creates ambiguity later, not clarity.
+- Pick exactly one target_id for update/supersede/noop.
+
+Example: new candidate fact "Jordan still owns the on-call rotation, now under the revised schedule." (kind ownership) against existing active memory id=5 "Jordan owns the on-call rotation." Correct output: { op: "noop", target_id: 5 } — the assignment itself is unchanged; "now under the revised schedule" is not new ownership information and belongs to a separate schedule fact, not this one.`;
 
 const RECONCILE_SCHEMA = {
   type: 'object',
